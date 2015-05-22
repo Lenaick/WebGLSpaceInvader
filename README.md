@@ -1,3 +1,0 @@
-# WebGLSpaceInvader
-COucou
-
