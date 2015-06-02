@@ -212,7 +212,7 @@ void main(void) {
 	void main(void) {
 		// couleur par defaut du vaisseau... a changer
 		 vec4 couleurTexture= texture2D(uMaTexture,vTextureCoord);
-		 gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+		 gl_FragColor = couleurTexture;
 
 	}
 </script>
@@ -260,18 +260,28 @@ void main(void) {
         spaceship.draw();
         gl.disable(gl.BLEND);
 
+        
+		/*gl.useProgram(mainLaser.shader());
+        mainLaser.sendUniformVariables();
+        gl.activeTexture(gl.TEXTURE0); // on active l'unite de texture 0
+		gl.bindTexture(gl.TEXTURE_2D,textureLaser); // on place maTexture dans l'unité active
+		gl.uniform1i(mainLaser.shader().maTextureUniform, 0); // on dit au shader que maTextureUniform se trouve sur l'unite de texture 0
+        mainLaser.draw();*/
         //Dession des lasers
-        for(i=0;i<lasers.length;i++)
+        if(lasers.length != 0)
         {
-
-			gl.useProgram(lasers[i].shader());
-		    lasers[i].sendUniformVariables();
-		    gl.activeTexture(gl.TEXTURE1); // on active l'unite de texture 0
-			gl.bindTexture(gl.TEXTURE_2D,textureLaser); // on place maTexture dans l'unité active
-			gl.uniform1i(lasers[i].shader().maTextureUniform, 1); // on dit au shader que maTextureUniform se trouve sur l'unite de texture 0
-		    lasers[i].draw();
-        }
+			gl.useProgram(lasers[0].shader());
+			for(i=0;i<lasers.length;i++)
+			{
+				lasers[i].sendUniformVariables();
+				gl.activeTexture(gl.TEXTURE0); // on active l'unite de texture 0
+				gl.bindTexture(gl.TEXTURE_2D,textureLaser); // on place maTexture dans l'unité active
+				gl.uniform1i(lasers[i].shader().maTextureUniform, 0); // on dit au shader que maTextureUniform se trouve sur l'unite de texture 0
+				lasers[i].draw();
+			}
+		}
     }
+        
 
     // une bonne manière de gerer les evenements claviers
     // permet d'avoir plusieurs touches appuyées simultanémen
@@ -304,6 +314,11 @@ void main(void) {
             newy = (newy < (-1.0+spaceship.getHeight()/2))? (-1.0+spaceship.getHeight()/2) : newy;
             spaceship.setPosition(spaceship.getPosition()[0],newy);
         }
+
+        if(currentlyPressedKeys[32])
+        {
+        	addLasers(1);
+        }
     }
 
     function mouseMove(event) {
@@ -316,6 +331,7 @@ void main(void) {
 
     function mouseDown(event) {
 		addLasers(2);
+		
     }
 
 
@@ -364,6 +380,11 @@ void main(void) {
         heightfield = new Heightfield();
         background = new Background(fbo.texture(0));
         spaceship = new Spaceship();
+       // mainLaser = new Laser();
+
+        //Init variable globale
+        ROF = 120; // coup par minute
+        timeElapsedSinceLastFire = new Date().getTime();
 
         // la couleur de fond sera noire
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -425,8 +446,17 @@ void main(void) {
     function addLasers(nbLasers)
     {
 		nbLasers = 1;
-		var position = spaceship.getPosition();
-		lasers.push(new Laser(position));
+		var timeNow = new Date().getTime();
+		var elapsed = timeNow - timeElapsedSinceLastFire;
+		if(elapsed > 1/(ROF/60)*1000)
+		{
+			var position = spaceship.getPosition();
+			var laser = new Laser();
+			laser.setPosition(position[0],position[1]);
+			lasers.push(laser);
+			timeElapsedSinceLastFire = timeNow;
+		}
+		
     }
 
 

@@ -21,7 +21,6 @@ function initLaserShader() {
 
 function Laser(position) {
 	this.initParameters();
-	this.setPosition(position);
 
 	// cree un nouveau buffer sur le GPU et l'active
 	this.vertexBuffer = gl.createBuffer();
@@ -68,13 +67,13 @@ function Laser(position) {
 }
 
 Laser.prototype.initParameters = function() {
-	this.width = 0.1;
+	this.width = 0.03;
 	this.height = 0.1;
 	this.position = [0.0,-0.7];
 }
 
 Laser.prototype.setParameters = function(elapsed) {
-	// on pourrait animer des choses ici
+	this.position[1] += elapsed/1000;
 }
 
 Laser.prototype.setPosition = function(x,y) {
