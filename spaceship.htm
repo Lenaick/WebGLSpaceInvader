@@ -210,10 +210,36 @@ void main(void) {
 	uniform sampler2D uMaTexture; // la texture en entree
 
 	void main(void) {
-		// couleur par defaut du vaisseau... a changer
-		 vec4 couleurTexture= texture2D(uMaTexture,vTextureCoord);
-		 gl_FragColor = couleurTexture;
+		 gl_FragColor = texture2D(uMaTexture,vTextureCoord);
+	}
+</script>
 
+<script id="ennemy-vs" type="x-shader/x-vertex">
+    // *** le vertex shader ***
+    attribute vec3 aVertexPosition; // la position du sommet
+    attribute vec2 aVertexCoord; // sa coordonnee de texture
+
+    uniform vec2 uPosition; // position du vaisseau
+    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
+
+    void main(void) {
+        // projection de la position
+        gl_Position = vec4(aVertexPosition+vec3(uPosition,0.0), 1.0);
+
+        // stockage de la coordonnee de texture
+        vTextureCoord = aVertexCoord;
+    }
+</script>
+<script id="ennemy-fs" type="x-shader/x-fragment">
+	// *** le fragment shader ***
+	precision highp float; // precision des nombres flottant
+
+	varying vec2 vTextureCoord; // recuperation de la coord rasterisee
+
+	uniform sampler2D uMaTexture; // la texture en entree
+
+	void main(void) {
+		 gl_FragColor = texture2D(uMaTexture,vTextureCoord);
 	}
 </script>
 
@@ -226,6 +252,8 @@ void main(void) {
     var background; // l'objet background, sa géométrie, son shader
     var spaceship; // l'objet spaceship, sa géométrie, son shader
     var lasers = [];
+    var bonus = [];
+    var ennemies = [];
 
     function drawScene() {
         // initialisation du viewport
@@ -260,6 +288,10 @@ void main(void) {
         spaceship.draw();
         gl.disable(gl.BLEND);
 
+        //dessin des ennemis
+
+        //dessins des bonus
+
         //Dession des lasers
         if(lasers.length != 0)
         {
@@ -291,19 +323,19 @@ void main(void) {
 
     function handleKeys() {
         if (currentlyPressedKeys[37]) { // left arrow
-            var newx = spaceship.getPosition()[0]-0.05;
+            var newx = spaceship.getPosition()[0]-vitesseHorizontale;
             newx = (newx < (-1.0+spaceship.getWidth()/2))? (-1.0+spaceship.getWidth()/2) : newx;
             spaceship.setPosition(newx,spaceship.getPosition()[1]);
         } else if (currentlyPressedKeys[38]) { // up arrow
-            var newy = spaceship.getPosition()[1]+0.05;
+            var newy = spaceship.getPosition()[1]+vitesseVerticale;
             newy = (newy > (1.0-spaceship.getHeight()/2))? (1.0-spaceship.getHeight()/2) : newy;
             spaceship.setPosition(spaceship.getPosition()[0],newy);
         } else if (currentlyPressedKeys[39]) { // right arrow
-            var newx = spaceship.getPosition()[0]+0.05;
+            var newx = spaceship.getPosition()[0]+vitesseHorizontale;
             newx = (newx > (1.0-spaceship.getWidth()/2))? (1.0-spaceship.getWidth()/2) : newx;
             spaceship.setPosition(newx,spaceship.getPosition()[1]);
         } else if (currentlyPressedKeys[40]) { // down arrow
-            var newy = spaceship.getPosition()[1]-0.05;
+            var newy = spaceship.getPosition()[1]-vitesseVerticale;
             newy = (newy < (-1.0+spaceship.getHeight()/2))? (-1.0+spaceship.getHeight()/2) : newy;
             spaceship.setPosition(spaceship.getPosition()[0],newy);
         }
@@ -338,7 +370,6 @@ void main(void) {
             heightfield.setParameters(elapsed);
             spaceship.setParameters(elapsed);
             background.setParameters(elapsed);
-            console.log(lasers.length);
             for(i=0;i<lasers.length;i++)
             {
 				lasers[i].setParameters(elapsed);
@@ -389,8 +420,12 @@ void main(void) {
         spaceship = new Spaceship();
 
         //Init variable globale
+        vitesseVerticale = 0.02;
+        vitesseHorizontale = 0.02;
         ROF = 120; // coup par minute
+        timeBetweenBonus = 15000; // en millisecond
         timeElapsedSinceLastFire = new Date().getTime(); // Initialisation
+        timeElapsedSinceLastBonus = new Date().getTime(); // Initialisation
 
         // la couleur de fond sera noire
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
