@@ -260,13 +260,6 @@ void main(void) {
         spaceship.draw();
         gl.disable(gl.BLEND);
 
-        
-		/*gl.useProgram(mainLaser.shader());
-        mainLaser.sendUniformVariables();
-        gl.activeTexture(gl.TEXTURE0); // on active l'unite de texture 0
-		gl.bindTexture(gl.TEXTURE_2D,textureLaser); // on place maTexture dans l'unité active
-		gl.uniform1i(mainLaser.shader().maTextureUniform, 0); // on dit au shader que maTextureUniform se trouve sur l'unite de texture 0
-        mainLaser.draw();*/
         //Dession des lasers
         if(lasers.length != 0)
         {
@@ -315,7 +308,7 @@ void main(void) {
             spaceship.setPosition(spaceship.getPosition()[0],newy);
         }
 
-        if(currentlyPressedKeys[32])
+        if(currentlyPressedKeys[32]) // space
         {
         	addLasers(1);
         }
@@ -334,7 +327,6 @@ void main(void) {
 		
     }
 
-
     // animation
     var lastTime = 0;
     function animate() {
@@ -342,9 +334,11 @@ void main(void) {
         if (lastTime != 0) {
             // chaque objet est susceptible de s'animer
             var elapsed = timeNow - lastTime;
+            
             heightfield.setParameters(elapsed);
             spaceship.setParameters(elapsed);
             background.setParameters(elapsed);
+            console.log(lasers.length);
             for(i=0;i<lasers.length;i++)
             {
 				lasers[i].setParameters(elapsed);
@@ -353,9 +347,22 @@ void main(void) {
         lastTime = timeNow;
     }
 
+    function update()
+    {
+		//gestion de la sortie des lasers de l'écran
+		for(i=0;i<lasers.length;i++)
+        {
+			if(lasers[i].position[1] > 1) // y < 0
+			{
+				lasers.splice(i,1);
+			}
+        }
+    }
+
     function tick() {
         requestAnimFrame(tick);
         handleKeys();
+        update();
         drawScene();
         animate();
     }
@@ -380,11 +387,10 @@ void main(void) {
         heightfield = new Heightfield();
         background = new Background(fbo.texture(0));
         spaceship = new Spaceship();
-       // mainLaser = new Laser();
 
         //Init variable globale
         ROF = 120; // coup par minute
-        timeElapsedSinceLastFire = new Date().getTime();
+        timeElapsedSinceLastFire = new Date().getTime(); // Initialisation
 
         // la couleur de fond sera noire
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
