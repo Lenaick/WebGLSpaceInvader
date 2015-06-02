@@ -70,13 +70,39 @@ Ennemy.prototype.hitbox = function() {
 	return {"x" : this.position[0], "y" : this.position[1], "width" : this.width, "height" : this.height};
 }
 
+Ennemy.prototype.setTypeCourbe = function(typeCourbe) {
+	this.typeCourbe = typeCourbe;
+}
+
 Ennemy.prototype.initParameters = function() {
 	this.width = 0.2;
 	this.height = 0.2;
+	this.typeCourbe="verticale";
+	this.texture = null;
 	this.position = [0.0,0.0];
 }
 
+Ennemy.prototype.setTexture = function(texture) {
+	this.texture = texture;
+}
+
+Ennemy.prototype.getTexture = function(texture) {
+	return this.texture;
+}
+
 Ennemy.prototype.setParameters = function(elapsed) {
+	if(this.typeCourbe == "verticale")
+	{
+		this.position[1] -= elapsed/1000;
+	}
+	else if(typeCourbe == "cos")
+	{
+
+	}
+	else if(typeCourbe == "droite")
+	{
+
+	}
 	
 }
 

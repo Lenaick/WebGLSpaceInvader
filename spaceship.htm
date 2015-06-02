@@ -297,7 +297,7 @@ void main(void) {
 			{
 				ennemies[i].sendUniformVariables();
 				gl.activeTexture(gl.TEXTURE0); // on active l'unite de texture 0
-				gl.bindTexture(gl.TEXTURE_2D,textureEnnemy1); // on place maTexture dans l'unité active
+				gl.bindTexture(gl.TEXTURE_2D,ennemies[i].getTexture()); // on place maTexture dans l'unité active
 				gl.uniform1i(ennemies[i].shader().maTextureUniform, 0); // on dit au shader que maTextureUniform se trouve sur l'unite de texture 0
 				ennemies[i].draw();
 			}
@@ -391,6 +391,10 @@ void main(void) {
             {
 				lasers[i].setParameters(elapsed);
             }
+            for(i=0;i<ennemies.length;i++)
+            {
+				ennemies[i].setParameters(elapsed);
+            }
         }
         lastTime = timeNow;
     }
@@ -455,12 +459,13 @@ void main(void) {
         heightfield = new Heightfield();
         background = new Background(fbo.texture(0));
         spaceship = new Spaceship();
-        addEnnemy();
+        addSequenceEnnemy1();
+        addSequenceEnnemy2();
 
         //Init variable globale
         vitesseVerticale = 0.02;
         vitesseHorizontale = 0.02;
-        ROF = 120; // coup par minute
+        ROF = 400; // coup par minute
         timeBetweenBonus = 15000; // en millisecond
         timeElapsedSinceLastFire = new Date().getTime(); // Initialisation
         timeElapsedSinceLastBonus = new Date().getTime(); // Initialisation
@@ -529,6 +534,12 @@ void main(void) {
             handleLoadedTexture(textureEnnemy1)
         }
         textureEnnemy1.image.src = "sprites/ennemy1.png";
+        textureEnnemy2 = gl.createTexture();
+        textureEnnemy2.image = new Image();
+        textureEnnemy2.image.onload = function () {
+            handleLoadedTexture(textureEnnemy2)
+        }
+        textureEnnemy2.image.src = "sprites/ennemy2.png";
     }
 
     function addLasers(nbLasers)
@@ -547,11 +558,29 @@ void main(void) {
 		
     }
 
-    function addEnnemy()
+    function addEnnemy(typeCourbe, x,y, texture)
     {
 		var ennemy = new Ennemy();
-		ennemy.setPosition(0,0);
+		ennemy.setPosition(x,y);
+		ennemy.setTypeCourbe(typeCourbe);
+		ennemy.setTexture(texture);
 		ennemies.push(ennemy);
+    }
+
+    function addSequenceEnnemy1() //Ajoute un banc d'ennemis de type 1
+    {
+		for(i=0;i<10;i++)
+		{
+			addEnnemy("verticale", -0.5, 2+i*0.4, textureEnnemy1);
+		}
+    }
+
+    function addSequenceEnnemy2() //Ajoute un banc d'ennemis de type 2
+    {
+		for(i=0;i<10;i++)
+		{
+			addEnnemy("cos", 0.5, 3+i*0.4, textureEnnemy2);
+		}
     }
 
 
