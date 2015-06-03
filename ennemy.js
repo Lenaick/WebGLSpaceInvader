@@ -79,6 +79,7 @@ Ennemy.prototype.initParameters = function() {
 	this.height = 0.2;
 	this.typeCourbe="verticale";
 	this.texture = null;
+	this.state = 0;
 	this.position = [0.0,0.0];
 }
 

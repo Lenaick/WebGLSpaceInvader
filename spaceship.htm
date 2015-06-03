@@ -12,240 +12,6 @@
 <script type="text/javascript" src="laser.js"></script>
 <script type="text/javascript" src="ennemy.js"></script>
 
-<script id="heightfield-vs" type="x-shader/x-vertex">
-    // *** le vertex shader ***
-    attribute vec3 aVertexPosition; // la position du sommet
-    attribute vec2 aVertexCoord; // sa coordonnee de texture
-
-    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
-
-    void main(void) {
-        // projection de la position
-        gl_Position = vec4(aVertexPosition, 1.0);
-
-        // stockage de la coordonnee de texture
-        vTextureCoord = aVertexCoord;
-    }
-</script>
-
-<script id="heightfield-fs" type="x-shader/x-fragment">
-// *** le fragment shader ***
-precision highp float; // precision des nombres flottant
-
-uniform vec2 uOffset;
-uniform float uAmplitude; // amplitude du bruit
-uniform float uFrequency; // frequence du bruit
-uniform float uPersistence; // persistence du bruit
-
-varying vec2 vTextureCoord; // recuperation de la coord rasterisee
-
-float hash(vec2 p) {
-    // pseudo random fonction
-    float h = dot(mod(p,vec2(100.0)),vec2(127.1,311.7));
-    return -1.0 + 2.0*fract(sin(h)*43758.5453123);
-}
-
-float vnoise(in vec2 p) {
-    // genere une valeur random sur une position spécifique d'une grille
-    // pris sur shadertoy
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f*f*(3.0-2.0*f);
-
-    return mix( mix( hash( i + vec2(0.0,0.0) ),
-                     hash( i + vec2(1.0,0.0) ), u.x),
-                mix( hash( i + vec2(0.0,1.0) ),
-                     hash( i + vec2(1.0,1.0) ), u.x), u.y);
-}
-
-float fractalNoise(in vec2 p) {
-    const int nb = 5; // nb octave
-    float f = uFrequency; // frequency
-    float a = uAmplitude; // amplitude
-    float e = uPersistence; // persistence
-
-    float n = 0.0;
-    for(int i=0;i<nb;++i)
-     {
-        n = n + a*vnoise(p*f);
-        f = 2.0*f;
-        a = a*e;
-    }
-    return n;
-}
-
-void main(void) {
-    vec2 p = vTextureCoord*2.0-vec2(1.0); // coordonnees
-    float n = fractalNoise(p+uOffset)*0.5+0.5; // bruit
-
-    gl_FragColor = vec4(vec3(n),1.0);
-
-}
-</script>
-
-<script id="background-vs" type="x-shader/x-vertex">
-    // *** le vertex shader ***
-    attribute vec3 aVertexPosition; // la position du sommet
-    attribute vec2 aVertexCoord; // sa coordonnee de texture
-
-    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
-
-    void main(void) {
-        // projection de la position
-        gl_Position = vec4(aVertexPosition, 1.0);
-
-        // stockage de la coordonnee de texture
-        vTextureCoord = aVertexCoord;
-    }
-</script>
-
-<script id="background-fs" type="x-shader/x-fragment">
-// *** le fragment shader ***
-precision highp float; // precision des nombres flottant
-
-uniform sampler2D uHeightfield; // la texture de hauteurs
-uniform vec2 uTextureSize; // la taille de la texture
-varying vec2 vTextureCoord; // recuperation de la coord rasterisee
-
-vec3 shade(in vec3 n,in float d) {
-    vec2 xy = vTextureCoord.xy*2.0-vec2(1.0);
-    vec3 v = -normalize(vec3(xy.x,xy.y,1.0)); // vecteur vue
-    vec3 l = normalize(vec3(10.0,5.0,5.0)); // vecteur lumière (pourrait varier au cours du temps pour de meilleurs effets)
-
-    vec3 r = reflect(l,n); // AJOUT
-
-    // TODO : le shading !
-    // la fonction prend en entrée la normale du terrain et sa profondeur
-    vec3 Ka = vec3(0.0,0.0,0.0);
-    vec3 Ks = vec3(0.0,0.0,1.0); // Rouge : 140 Vert 0 Bleu 255
-    vec3 tmp1 = vec3(d)*max(dot(n,l),0.0);
-    vec3 tmp2 = Ks*pow(max(dot(r,v),0.0),0.5);
-
-    vec3 Lo = Ka + tmp1 + tmp2;
-
-    return Lo;
-    // return n;
-}
-
-vec3 computeNormal() {
-    const float scale = 20.0;
-
-    vec2 ps = 1.0/uTextureSize;
-    float xp = texture2D(uHeightfield,vTextureCoord+vec2( ps.x,0.0)).x;
-    float xm = texture2D(uHeightfield,vTextureCoord+vec2(-ps.x,0.0)).x;
-    float yp = texture2D(uHeightfield,vTextureCoord+vec2(0.0, ps.y)).x;
-    float ym = texture2D(uHeightfield,vTextureCoord+vec2(0.0,-ps.y)).x;
-
-    float gx = 0.5*(xp-xm)*scale;
-    float gy = 0.5*(yp-ym)*scale;
-
-    vec3 v1 = normalize(vec3(1.0,0.0,gx));
-    vec3 v2 = normalize(vec3(0.0,1.0,gy));
-
-    return cross(v1,v2);
-}
-
-void main(void) {
-    float d = texture2D(uHeightfield,vTextureCoord).x;
-    vec3 n = computeNormal();
-    vec3 s = shade(n,d);
-    gl_FragColor = vec4(s,1.0);
-
-}
-</script>
-
-<script id="spaceship-vs" type="x-shader/x-vertex">
-    // *** le vertex shader ***
-    attribute vec3 aVertexPosition; // la position du sommet
-    attribute vec2 aVertexCoord; // sa coordonnee de texture
-
-    uniform vec2 uPosition; // position du vaisseau
-    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
-
-    void main(void) {
-        // projection de la position
-        gl_Position = vec4(aVertexPosition+vec3(uPosition,0.0), 1.0);
-
-        // stockage de la coordonnee de texture
-        vTextureCoord = aVertexCoord;
-    }
-</script>
-<script id="spaceship-fs" type="x-shader/x-fragment">
-// *** le fragment shader ***
-precision highp float; // precision des nombres flottant
-
-varying vec2 vTextureCoord; // recuperation de la coord rasterisee
-
-uniform sampler2D uMaTexture; // la texture en entree
-
-void main(void) {
-    // couleur par defaut du vaisseau... a changer
-     vec4 couleurTexture= texture2D(uMaTexture,vTextureCoord);
-     gl_FragColor = couleurTexture;
-
-}
-</script>
-
-<script id="laser-vs" type="x-shader/x-vertex">
-    // *** le vertex shader ***
-    attribute vec3 aVertexPosition; // la position du sommet
-    attribute vec2 aVertexCoord; // sa coordonnee de texture
-
-    uniform vec2 uPosition; // position du vaisseau
-    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
-
-    void main(void) {
-        // projection de la position
-        gl_Position = vec4(aVertexPosition+vec3(uPosition,0.0), 1.0);
-
-        // stockage de la coordonnee de texture
-        vTextureCoord = aVertexCoord;
-    }
-</script>
-<script id="laser-fs" type="x-shader/x-fragment">
-	// *** le fragment shader ***
-	precision highp float; // precision des nombres flottant
-
-	varying vec2 vTextureCoord; // recuperation de la coord rasterisee
-
-	uniform sampler2D uMaTexture; // la texture en entree
-
-	void main(void) {
-		 gl_FragColor = texture2D(uMaTexture,vTextureCoord);
-	}
-</script>
-
-<script id="ennemy-vs" type="x-shader/x-vertex">
-    // *** le vertex shader ***
-    attribute vec3 aVertexPosition; // la position du sommet
-    attribute vec2 aVertexCoord; // sa coordonnee de texture
-
-    uniform vec2 uPosition; // position du vaisseau
-    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
-
-    void main(void) {
-        // projection de la position
-        gl_Position = vec4(aVertexPosition+vec3(uPosition,0.0), 1.0);
-
-        // stockage de la coordonnee de texture
-        vTextureCoord = aVertexCoord;
-    }
-</script>
-<script id="ennemy-fs" type="x-shader/x-fragment">
-	// *** le fragment shader ***
-	precision highp float; // precision des nombres flottant
-
-	varying vec2 vTextureCoord; // recuperation de la coord rasterisee
-
-	uniform sampler2D uMaTexture; // la texture en entree
-
-	void main(void) {
-		 gl_FragColor = texture2D(uMaTexture,vTextureCoord);
-	}
-</script>
-
-
-
 <script type="text/javascript">
 
     var fbo; // le FBO utilisé pour rendre la texture de hauteur
@@ -509,7 +275,9 @@ void main(void) {
 
     var textureShip;
     var textureLaser;
+    var textureExplosion;
     var textureEnnemy1;
+    var textureEnnemy2;
 
     function initTexture() {
         // creation de la texture
@@ -526,6 +294,13 @@ void main(void) {
             handleLoadedTexture(textureLaser)
         }
         textureLaser.image.src = "sprites/laser.png";
+
+        textureExplosion = gl.createTexture();
+        textureExplosion.image = new Image();
+        textureExplosion.image.onload = function () {
+            handleLoadedTexture(textureExplosion)
+        }
+        textureExplosion.image.src = "sprites/explosion.png";
 
 		//Chargement des textures des ennemis
         textureEnnemy1 = gl.createTexture();
@@ -584,6 +359,238 @@ void main(void) {
     }
 
 
+</script>
+
+<script id="heightfield-vs" type="x-shader/x-vertex">
+    // *** le vertex shader ***
+    attribute vec3 aVertexPosition; // la position du sommet
+    attribute vec2 aVertexCoord; // sa coordonnee de texture
+
+    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
+
+    void main(void) {
+        // projection de la position
+        gl_Position = vec4(aVertexPosition, 1.0);
+
+        // stockage de la coordonnee de texture
+        vTextureCoord = aVertexCoord;
+    }
+</script>
+
+<script id="heightfield-fs" type="x-shader/x-fragment">
+// *** le fragment shader ***
+precision highp float; // precision des nombres flottant
+
+uniform vec2 uOffset;
+uniform float uAmplitude; // amplitude du bruit
+uniform float uFrequency; // frequence du bruit
+uniform float uPersistence; // persistence du bruit
+
+varying vec2 vTextureCoord; // recuperation de la coord rasterisee
+
+float hash(vec2 p) {
+    // pseudo random fonction
+    float h = dot(mod(p,vec2(100.0)),vec2(127.1,311.7));
+    return -1.0 + 2.0*fract(sin(h)*43758.5453123);
+}
+
+float vnoise(in vec2 p) {
+    // genere une valeur random sur une position spécifique d'une grille
+    // pris sur shadertoy
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f*f*(3.0-2.0*f);
+
+    return mix( mix( hash( i + vec2(0.0,0.0) ),
+                     hash( i + vec2(1.0,0.0) ), u.x),
+                mix( hash( i + vec2(0.0,1.0) ),
+                     hash( i + vec2(1.0,1.0) ), u.x), u.y);
+}
+
+float fractalNoise(in vec2 p) {
+    const int nb = 5; // nb octave
+    float f = uFrequency; // frequency
+    float a = uAmplitude; // amplitude
+    float e = uPersistence; // persistence
+
+    float n = 0.0;
+    for(int i=0;i<nb;++i)
+     {
+        n = n + a*vnoise(p*f);
+        f = 2.0*f;
+        a = a*e;
+    }
+    return n;
+}
+
+void main(void) {
+    vec2 p = vTextureCoord*2.0-vec2(1.0); // coordonnees
+    float n = fractalNoise(p+uOffset)*0.5+0.5; // bruit
+
+    gl_FragColor = vec4(vec3(n),1.0);
+
+}
+</script>
+
+<script id="background-vs" type="x-shader/x-vertex">
+    // *** le vertex shader ***
+    attribute vec3 aVertexPosition; // la position du sommet
+    attribute vec2 aVertexCoord; // sa coordonnee de texture
+
+    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
+
+    void main(void) {
+        // projection de la position
+        gl_Position = vec4(aVertexPosition, 1.0);
+
+        // stockage de la coordonnee de texture
+        vTextureCoord = aVertexCoord;
+    }
+</script>
+
+<script id="background-fs" type="x-shader/x-fragment">
+// *** le fragment shader ***
+precision highp float; // precision des nombres flottant
+
+uniform sampler2D uHeightfield; // la texture de hauteurs
+uniform vec2 uTextureSize; // la taille de la texture
+varying vec2 vTextureCoord; // recuperation de la coord rasterisee
+
+vec3 shade(in vec3 n,in float d) {
+    vec2 xy = vTextureCoord.xy*2.0-vec2(1.0);
+    vec3 v = -normalize(vec3(xy.x,xy.y,1.0)); // vecteur vue
+    vec3 l = normalize(vec3(10.0,5.0,5.0)); // vecteur lumière (pourrait varier au cours du temps pour de meilleurs effets)
+
+    vec3 r = reflect(l,n); // AJOUT
+
+    // TODO : le shading !
+    // la fonction prend en entrée la normale du terrain et sa profondeur
+    vec3 Ka = vec3(0.0,0.0,0.0);
+    vec3 Ks = vec3(0.0,0.0,1.0); // Rouge : 140 Vert 0 Bleu 255
+    vec3 tmp1 = vec3(d)*max(dot(n,l),0.0);
+    vec3 tmp2 = Ks*pow(max(dot(r,v),0.0),0.5);
+
+    vec3 Lo = Ka + tmp1 + tmp2;
+
+    return Lo;
+    // return n;
+}
+
+vec3 computeNormal() {
+    const float scale = 20.0;
+
+    vec2 ps = 1.0/uTextureSize;
+    float xp = texture2D(uHeightfield,vTextureCoord+vec2( ps.x,0.0)).x;
+    float xm = texture2D(uHeightfield,vTextureCoord+vec2(-ps.x,0.0)).x;
+    float yp = texture2D(uHeightfield,vTextureCoord+vec2(0.0, ps.y)).x;
+    float ym = texture2D(uHeightfield,vTextureCoord+vec2(0.0,-ps.y)).x;
+
+    float gx = 0.5*(xp-xm)*scale;
+    float gy = 0.5*(yp-ym)*scale;
+
+    vec3 v1 = normalize(vec3(1.0,0.0,gx));
+    vec3 v2 = normalize(vec3(0.0,1.0,gy));
+
+    return cross(v1,v2);
+}
+
+void main(void) {
+    float d = texture2D(uHeightfield,vTextureCoord).x;
+    vec3 n = computeNormal();
+    vec3 s = shade(n,d);
+    gl_FragColor = vec4(s,1.0);
+
+}
+</script>
+
+<script id="spaceship-vs" type="x-shader/x-vertex">
+    // *** le vertex shader ***
+    attribute vec3 aVertexPosition; // la position du sommet
+    attribute vec2 aVertexCoord; // sa coordonnee de texture
+
+    uniform vec2 uPosition; // position du vaisseau
+    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
+
+    void main(void) {
+        // projection de la position
+        gl_Position = vec4(aVertexPosition+vec3(uPosition,0.0), 1.0);
+
+        // stockage de la coordonnee de texture
+        vTextureCoord = aVertexCoord;
+    }
+</script>
+<script id="spaceship-fs" type="x-shader/x-fragment">
+// *** le fragment shader ***
+precision highp float; // precision des nombres flottant
+
+varying vec2 vTextureCoord; // recuperation de la coord rasterisee
+
+uniform sampler2D uMaTexture; // la texture en entree
+
+void main(void) {
+    // couleur par defaut du vaisseau... a changer
+     vec4 couleurTexture= texture2D(uMaTexture,vTextureCoord);
+     gl_FragColor = couleurTexture;
+
+}
+</script>
+
+<script id="laser-vs" type="x-shader/x-vertex">
+    // *** le vertex shader ***
+    attribute vec3 aVertexPosition; // la position du sommet
+    attribute vec2 aVertexCoord; // sa coordonnee de texture
+
+    uniform vec2 uPosition; // position du vaisseau
+    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
+
+    void main(void) {
+        // projection de la position
+        gl_Position = vec4(aVertexPosition+vec3(uPosition,0.0), 1.0);
+
+        // stockage de la coordonnee de texture
+        vTextureCoord = aVertexCoord;
+    }
+</script>
+<script id="laser-fs" type="x-shader/x-fragment">
+	// *** le fragment shader ***
+	precision highp float; // precision des nombres flottant
+
+	varying vec2 vTextureCoord; // recuperation de la coord rasterisee
+
+	uniform sampler2D uMaTexture; // la texture en entree
+
+	void main(void) {
+		 gl_FragColor = texture2D(uMaTexture,vTextureCoord);
+	}
+</script>
+
+<script id="ennemy-vs" type="x-shader/x-vertex">
+    // *** le vertex shader ***
+    attribute vec3 aVertexPosition; // la position du sommet
+    attribute vec2 aVertexCoord; // sa coordonnee de texture
+
+    uniform vec2 uPosition; // position du vaisseau
+    varying vec2 vTextureCoord; // on souhaite rasteriser la coordonnee
+
+    void main(void) {
+        // projection de la position
+        gl_Position = vec4(aVertexPosition+vec3(uPosition,0.0), 1.0);
+
+        // stockage de la coordonnee de texture
+        vTextureCoord = aVertexCoord;
+    }
+</script>
+<script id="ennemy-fs" type="x-shader/x-fragment">
+	// *** le fragment shader ***
+	precision highp float; // precision des nombres flottant
+
+	varying vec2 vTextureCoord; // recuperation de la coord rasterisee
+
+	uniform sampler2D uMaTexture; // la texture en entree
+
+	void main(void) {
+		 gl_FragColor = texture2D(uMaTexture,vTextureCoord);
+	}
 </script>
 
 
