@@ -95,11 +95,13 @@ Ennemy.prototype.setParameters = function(elapsed) {
 	{
 		this.position[1] -= elapsed/1000;
 	}
-	else if(typeCourbe == "cos")
+	else if(this.typeCourbe == "cos")
 	{
-
+		elapsed /= 1000;
+		this.position[0] +=  
+		this.position[1] -= Math.cos(3);
 	}
-	else if(typeCourbe == "droite")
+	else if(this.typeCourbe == "droite")
 	{
 
 	}
