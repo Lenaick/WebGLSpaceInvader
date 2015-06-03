@@ -74,6 +74,10 @@ Ennemy.prototype.setTypeCourbe = function(typeCourbe) {
 	this.typeCourbe = typeCourbe;
 }
 
+//Etat d'un ennmi 
+// 0 = normal
+// 1 = explosion
+// 2 = mort
 Ennemy.prototype.initParameters = function() {
 	this.width = 0.2;
 	this.height = 0.2;
@@ -91,7 +95,28 @@ Ennemy.prototype.getTexture = function(texture) {
 	return this.texture;
 }
 
+Ennemy.prototype.updateState = function(state) {
+	this.state = state;
+}
+
 Ennemy.prototype.setParameters = function(elapsed) {
+	switch(this.state)
+	{
+		case 0:
+			this.deplacer(elapsed);
+			break;
+		case 1:
+			console.log("explosion");
+			this.state = 2;
+			break;
+		case 2:
+			break;
+	}
+	
+	
+}
+
+Ennemy.prototype.deplacer = function(elapsed) {
 	if(this.typeCourbe == "verticale")
 	{
 		this.position[1] -= elapsed/1000;
@@ -99,14 +124,13 @@ Ennemy.prototype.setParameters = function(elapsed) {
 	else if(this.typeCourbe == "cos")
 	{
 		elapsed /= 1000;
-		this.position[0] +=  
+		this.position[0] +=  1
 		this.position[1] -= Math.cos(3);
 	}
 	else if(this.typeCourbe == "droite")
 	{
 
 	}
-	
 }
 
 Ennemy.prototype.setPosition = function(x,y) {

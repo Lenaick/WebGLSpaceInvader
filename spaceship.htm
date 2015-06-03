@@ -188,9 +188,13 @@
 					ay = ennemies[j].position[1] + ennemies[j].height/2;
 					if( ix <= lasers[i].position[0] && lasers[i].position[0] <= ax && iy <= lasers[i].position[1] && lasers[i].position[1] <= ay  )
 					{
-						ennemies.splice(j,1);
+						//ennemies.splice(j,1);
+						ennemies[j].updateState(1); // l'ennemi explose
 						lasers.splice(i,1);
 					}
+
+					if(lasers[i].state == 2) // l'ennemi est mort, on l'enleve
+					{ennemies.splice(j,1);}
 				}
 			}
         }
