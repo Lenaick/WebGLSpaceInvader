@@ -8,7 +8,7 @@ function EnnemyManager()
 EnnemyManager.prototype.initParameters = function() {
 	this.timeBetweenEnnemy1 = 8000;
 	this.timeBetweenEnnemy2 = 13000;
-	this.timeBetweenEnnemy3 = 9000;
+	this.timeBetweenEnnemy3 = 8000;
 	this.timeSinceLastEnnemy1 = 0;
 	this.timeSinceLastEnnemy2 = 0;
 	this.timeSinceLastEnnemy3 = 0;
