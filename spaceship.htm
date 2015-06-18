@@ -11,6 +11,7 @@
 <script type="text/javascript" src="spaceship.js"></script>
 <script type="text/javascript" src="laser.js"></script>
 <script type="text/javascript" src="ennemy.js"></script>
+<script type="text/javascript" src="EnnemyManager.js"></script>
 
 <script type="text/javascript">
 
@@ -153,6 +154,7 @@
             heightfield.setParameters(elapsed);
             spaceship.setParameters(elapsed);
             background.setParameters(elapsed);
+            ennemyManager.setParameters(elapsed);
             for(i=0;i<lasers.length;i++)
             {
 				lasers[i].setParameters(elapsed);
@@ -190,7 +192,8 @@
 					{
 						ennemies[j].updateState(1); // l'ennemi explose
 						lasers.splice(i,1);
-					}	
+					}
+					
 				}
 			}
         }
@@ -199,6 +202,10 @@
         {
 			if(ennemies[j].state == 2) // l'ennemi est mort, on l'enleve
 			{ennemies.splice(j,1);}
+			else if(ennemies[j].position[1] < -1)
+			{
+				ennemies.splice(j,1);
+			}
         }
     }
 
@@ -208,6 +215,7 @@
         update();
         animate();
         drawScene();
+        console.log(ennemies.length);
     }
 
 
@@ -231,8 +239,9 @@
         heightfield = new Heightfield();
         background = new Background(fbo.texture(0));
         spaceship = new Spaceship();
-        addSequenceEnnemy1();
-        addSequenceEnnemy2();
+        ennemyManager = new EnnemyManager();
+        //addSequenceEnnemy1();
+        //addSequenceEnnemy2();
 
         //Init variable globale
         vitesseVerticale = 0.02;
@@ -284,8 +293,13 @@
     var textureExplosion;
     var textureEnnemy1;
     var textureEnnemy2;
+    var textureEnnemy3;
+
+	var textureExplosion;
 
     function initTexture() {
+
+    	initTextureExplosion();
         // creation de la texture
         textureShip = gl.createTexture();
         textureShip.image = new Image();
@@ -314,8 +328,14 @@
             handleLoadedTexture(textureEnnemy2)
         }
         textureEnnemy2.image.src = "sprites/ennemy2.png";
+        textureEnnemy3 = gl.createTexture();
+        textureEnnemy3.image = new Image();
+        textureEnnemy3.image.onload = function () {
+            handleLoadedTexture(textureEnnemy3)
+        }
+        textureEnnemy3.image.src = "sprites/ennemy3.png";
 
-        initTextureExplosion();
+        
 
     }
 
@@ -363,57 +383,15 @@
     function initTextureExplosion()
     {
 		//j'ai test avec un tableau de texture mais la portée de variable ne semble pas fonctionner, 
-		//les variables sont donc chargé une à une
-		var textureExplosion0;
-		var textureExplosion1;
-		var textureExplosion2;
-		var textureExplosion3;
-		var textureExplosion4;
-		var textureExplosion5;
-		var textureExplosion6;
-		var textureExplosion7;
-		var textureExplosion8;
-		var textureExplosion9;
-		var textureExplosion10;
-		var textureExplosion11;
-		var textureExplosion12;
-		var textureExplosion13;
-		var textureExplosion14;
+		//les variables sont donc chargé une à un
 		
-		textureExplosion0 = gl.createTexture();
-	    textureExplosion0.image = new Image();
-	    textureExplosion0.image.onload = function () {
+		textureExplosion = gl.createTexture();
+	    textureExplosion.image = new Image();
+	    textureExplosion.image.onload = function () {
+	    	handleLoadedTexture(textureExplosion);
 	    }
-	    var string = "sprites/explosion"+0+".png";
-	    textureExplosion0.image.src = string;
-
-	    textureExplosion1 = gl.createTexture();
-	    textureExplosion1.image = new Image();
-	    textureExplosion1.image.onload = function () {
-	    }
-	    var string = "sprites/explosion"+1+".png";
-	    textureExplosion1.image.src = string;
-
-	    textureExplosion2 = gl.createTexture();
-	    textureExplosion2.image = new Image();
-	    textureExplosion2.image.onload = function () {
-	    }
-	    var string = "sprites/explosion"+2+".png";
-	    textureExplosion2.image.src = string;
-
-	    textureExplosion3 = gl.createTexture();
-	    textureExplosion3.image = new Image();
-	    textureExplosion3.image.onload = function () {
-	    }
-	    var string = "sprites/explosion"+3+".png";
-	    textureExplosion3.image.src = string;
-
-	    textureExplosion4 = gl.createTexture();
-	    textureExplosion4.image = new Image();
-	    textureExplosion4.image.onload = function () {
-	    }
-	    var string = "sprites/explosion"+4+".png";
-	    textureExplosion4.image.src = string;
+	    var s = "sprites/explosion7.png";
+	    textureExplosion.image.src = s;
     }
 
 

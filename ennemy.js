@@ -119,12 +119,12 @@ Ennemy.prototype.setParameters = function(elapsed) {
 Ennemy.prototype.manageExplosion = function(elapsed){
     var timeNow = new Date().getTime();
 	var elapsed = timeNow - this.timeSinceLastUpdate;
-	console.log(tabTextureExplosion.length);
+
 	if(elapsed > timeBetweenUpdate)
 	{
-		if(this.idExplosion < 16)
-		{
-			this.setTexture(tabTextureExplosion[0]);
+		if(this.idExplosion < 2)
+		{	
+			this.setTexture(textureExplosion);
 			this.timeSinceLastUpdate = elapsed;
 		}
 		else
