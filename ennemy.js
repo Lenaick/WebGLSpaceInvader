@@ -1,4 +1,5 @@
 var EnnemyShader;
+var timeBetweenUpdate = 200;
 
 function initEnnemyShader() {
 	EnnemyShader = initShaders("ennemy-vs","ennemy-fs");
@@ -84,6 +85,8 @@ Ennemy.prototype.initParameters = function() {
 	this.typeCourbe="verticale";
 	this.texture = null;
 	this.state = 0;
+	this.idExplosion = 0;
+	this.timeSinceLastUpdate = 0;
 	this.position = [0.0,0.0];
 }
 
@@ -106,14 +109,29 @@ Ennemy.prototype.setParameters = function(elapsed) {
 			this.deplacer(elapsed);
 			break;
 		case 1:
-			console.log("explosion");
-			this.state = 2;
+			this.manageExplosion(elapsed);
 			break;
 		case 2:
 			break;
 	}
-	
-	
+}
+
+Ennemy.prototype.manageExplosion = function(elapsed){
+    var timeNow = new Date().getTime();
+	var elapsed = timeNow - this.timeSinceLastUpdate;
+	console.log(tabTextureExplosion.length);
+	if(elapsed > timeBetweenUpdate)
+	{
+		if(this.idExplosion < 16)
+		{
+			this.setTexture(tabTextureExplosion[0]);
+			this.timeSinceLastUpdate = elapsed;
+		}
+		else
+			this.updateState(2);
+
+		this.idExplosion++;
+	}
 }
 
 Ennemy.prototype.deplacer = function(elapsed) {
@@ -123,9 +141,8 @@ Ennemy.prototype.deplacer = function(elapsed) {
 	}
 	else if(this.typeCourbe == "cos")
 	{
-		elapsed /= 1000;
-		this.position[0] +=  1
-		this.position[1] -= Math.cos(3);
+		this.position[0] +=  0.02;
+		this.position[1] -= Math.cos(this.position[0]);
 	}
 	else if(this.typeCourbe == "droite")
 	{

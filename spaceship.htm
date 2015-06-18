@@ -170,7 +170,7 @@
 		//gestion de la sortie des lasers de l'écran
 		for(i=0;i<lasers.length;i++)
         {
-			if(lasers[i].position[1] > 1) // y < 0
+			if(lasers[i].position[1] > 1)
 			{
 				lasers.splice(i,1);
 			}
@@ -186,17 +186,19 @@
 					iy = ennemies[j].position[1] - ennemies[j].height/2;
 					ax = ennemies[j].position[0] + ennemies[j].width/2;
 					ay = ennemies[j].position[1] + ennemies[j].height/2;
-					if( ix <= lasers[i].position[0] && lasers[i].position[0] <= ax && iy <= lasers[i].position[1] && lasers[i].position[1] <= ay  )
+					if( ennemies[j].state == 0 && ix <= lasers[i].position[0] && lasers[i].position[0] <= ax && iy <= lasers[i].position[1] && lasers[i].position[1] <= ay  )
 					{
-						//ennemies.splice(j,1);
 						ennemies[j].updateState(1); // l'ennemi explose
 						lasers.splice(i,1);
-					}
-
-					if(lasers[i].state == 2) // l'ennemi est mort, on l'enleve
-					{ennemies.splice(j,1);}
+					}	
 				}
 			}
+        }
+
+        for(j=0;j<ennemies.length;j++)
+        {
+			if(ennemies[j].state == 2) // l'ennemi est mort, on l'enleve
+			{ennemies.splice(j,1);}
         }
     }
 
@@ -204,8 +206,8 @@
         requestAnimFrame(tick);
         handleKeys();
         update();
-        drawScene();
         animate();
+        drawScene();
     }
 
 
@@ -299,13 +301,6 @@
         }
         textureLaser.image.src = "sprites/laser.png";
 
-        textureExplosion = gl.createTexture();
-        textureExplosion.image = new Image();
-        textureExplosion.image.onload = function () {
-            handleLoadedTexture(textureExplosion)
-        }
-        textureExplosion.image.src = "sprites/explosion.png";
-
 		//Chargement des textures des ennemis
         textureEnnemy1 = gl.createTexture();
         textureEnnemy1.image = new Image();
@@ -319,6 +314,9 @@
             handleLoadedTexture(textureEnnemy2)
         }
         textureEnnemy2.image.src = "sprites/ennemy2.png";
+
+        initTextureExplosion();
+
     }
 
     function addLasers(nbLasers)
@@ -360,6 +358,62 @@
 		{
 			addEnnemy("cos", 0.5, 3+i*0.4, textureEnnemy2);
 		}
+    }
+
+    function initTextureExplosion()
+    {
+		//j'ai test avec un tableau de texture mais la portée de variable ne semble pas fonctionner, 
+		//les variables sont donc chargé une à une
+		var textureExplosion0;
+		var textureExplosion1;
+		var textureExplosion2;
+		var textureExplosion3;
+		var textureExplosion4;
+		var textureExplosion5;
+		var textureExplosion6;
+		var textureExplosion7;
+		var textureExplosion8;
+		var textureExplosion9;
+		var textureExplosion10;
+		var textureExplosion11;
+		var textureExplosion12;
+		var textureExplosion13;
+		var textureExplosion14;
+		
+		textureExplosion0 = gl.createTexture();
+	    textureExplosion0.image = new Image();
+	    textureExplosion0.image.onload = function () {
+	    }
+	    var string = "sprites/explosion"+0+".png";
+	    textureExplosion0.image.src = string;
+
+	    textureExplosion1 = gl.createTexture();
+	    textureExplosion1.image = new Image();
+	    textureExplosion1.image.onload = function () {
+	    }
+	    var string = "sprites/explosion"+1+".png";
+	    textureExplosion1.image.src = string;
+
+	    textureExplosion2 = gl.createTexture();
+	    textureExplosion2.image = new Image();
+	    textureExplosion2.image.onload = function () {
+	    }
+	    var string = "sprites/explosion"+2+".png";
+	    textureExplosion2.image.src = string;
+
+	    textureExplosion3 = gl.createTexture();
+	    textureExplosion3.image = new Image();
+	    textureExplosion3.image.onload = function () {
+	    }
+	    var string = "sprites/explosion"+3+".png";
+	    textureExplosion3.image.src = string;
+
+	    textureExplosion4 = gl.createTexture();
+	    textureExplosion4.image = new Image();
+	    textureExplosion4.image.onload = function () {
+	    }
+	    var string = "sprites/explosion"+4+".png";
+	    textureExplosion4.image.src = string;
     }
 
 
